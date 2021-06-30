@@ -5,6 +5,7 @@ import com.tbetemariam.ecommerce.models.Product;
 import com.tbetemariam.ecommerce.models.ProductCategory;
 import com.tbetemariam.ecommerce.models.State;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
 import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
@@ -20,6 +21,9 @@ import java.util.Set;
 @Configuration
 public class MyDataRestConfig implements RepositoryRestConfigurer {
 
+    @Value("${allowed.origins}")
+    private String[] theAllowedOrigins;
+
     private EntityManager entityManager;
 
     @Autowired
@@ -30,7 +34,7 @@ public class MyDataRestConfig implements RepositoryRestConfigurer {
     @Override
     public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config, CorsRegistry cors) {
         RepositoryRestConfigurer.super.configureRepositoryRestConfiguration(config, cors);
-        HttpMethod[] theUnsupportedActions = {HttpMethod.PUT, HttpMethod.POST, HttpMethod.DELETE};
+        HttpMethod[] theUnsupportedActions = {HttpMethod.PUT, HttpMethod.POST, HttpMethod.DELETE, HttpMethod.PATCH};
 
 //        disable HTTP methods for the below class: PUT, POST, DELETE
         disableHttpMethods(Product.class, config, theUnsupportedActions);
@@ -40,6 +44,9 @@ public class MyDataRestConfig implements RepositoryRestConfigurer {
 
 //        call an internal helper method to expose the id
         exposeIds(config);
+
+//        configure CORS mapping
+        cors.addMapping(config.getBasePath() + "/**").allowedOrigins(theAllowedOrigins);
     }
 
     private void disableHttpMethods(Class theClass, RepositoryRestConfiguration config, HttpMethod[] theUnsupportedActions) {
